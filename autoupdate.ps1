@@ -1,5 +1,5 @@
 <#
-Written for PowerShell 5 (Windows 10)
+Written for PowerShell 5 (Windows 10) - for running as a scheduled task.
 
 The first four variables are all user configurable as per your requirements.
 Remove the value of prune if you do not require pruning
