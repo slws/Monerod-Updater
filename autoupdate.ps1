@@ -13,8 +13,6 @@ $fPath = "<Your_filepath>"
 $lmdb = "--data-dir <Your_blockchain_path>"
 $subfolder = "$fPath\monero-cli"
 $monerod = (Get-Process -name monerod -EA SilentlyContinue).id
-$hMatch = $false
-$pgpSig = ""
 If ($monerod){
     $update = [string] (& $subfolder\monerod.exe update check)
     If ($update -like "*No update available"){
@@ -61,7 +59,7 @@ If ($monerod){
                 Write-Output "Hash match confirmed. Extracting download..."
                 Expand-Archive -LiteralPath $fPath\Monero.zip -DestinationPath $fPath -Force
                 $varName = "monero-x86_64-w64-mingw32-v"+$fileName.Substring(16,$fileName.Length-20)
-                If (test-path $subfolder) {
+                If (Test-Path $subfolder) {
                     Move-Item $fPath\$varName\* $subfolder\ -Force
                     Remove-Item $fPath\$varName
                     Remove-Item $fPath\monero.zip
