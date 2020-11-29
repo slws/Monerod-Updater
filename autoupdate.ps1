@@ -95,6 +95,4 @@ If ($update -like "*No update available"){
             }
         }
     }
-} Else {
-    Write-Output "Monerod issue - file missing?"
 }
