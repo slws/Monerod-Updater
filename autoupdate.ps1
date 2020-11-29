@@ -48,7 +48,7 @@ If ($monerod){
     }
 } Else {
         Write-Output "Daemon not running."
-        If (Test-Path "$fPath\monero-cli\monerod.exe"){
+        If (Test-Path "$subfolder\monerod.exe"){
             Write-Output "Starting monerod.exe..."
             Start-Process $subfolder\monerod.exe -ArgumentList "$lmdb $prune"
         } Else {
