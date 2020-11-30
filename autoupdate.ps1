@@ -22,12 +22,12 @@ If ($monerod){
         $url = $updateInfo[10].Substring(0,$updateInfo[10].Length-1)
         $fileInfo = $url -split '/'
         $fileName = $fileInfo[4]
-        Write-Output "Downloading $fileName from the web..."
+        Add-Content $fPath\update.log "$(Get-Date -Format "dd/MM/yyyy HH:mm:ss")> Downloading $fileName from the web..."
         $progresspreference = 'silentlyContinue'
         Invoke-WebRequest $url -OutFile $fPath\Monero.zip
         $progressPreference = 'Continue'
         If (VerifyHash($fPath)){
-            Write-Output "Hash match confirmed. Killing monerod and Extracting download..."
+            Add-Content $fPath\update.log "$(Get-Date -Format "dd/MM/yyyy HH:mm:ss")> Hash match confirmed. Killing monerod and Extracting download..."
             Stop-Process -id $monerod | Wait-Process
             Expand-Archive -LiteralPath $fPath\Monero.zip -DestinationPath $fPath -Force
             $varName = "monero-x86_64-w64-mingw32-v"+$fileName.Substring(16,$fileName.Length-20)
@@ -38,25 +38,25 @@ If ($monerod){
             } Else {
                 Rename-Item $fPath\$varName $subfolder
             }
-            Write-Output "Restarting monerod.exe..."
+            Add-Content $fPath\update.log "$(Get-Date -Format "dd/MM/yyyy HH:mm:ss")> Restarting monerod.exe..."
             Start-Process $subfolder\monerod.exe -ArgumentList "$lmdb $prune"
         } Else {
-            Write-Output "Hashes/PGP Signature unverifiable! Follow: https://www.getmonero.org/resources/user-guides/verification-windows-beginner.html"
+            Add-Content $fPath\update.log "$(Get-Date -Format "dd/MM/yyyy HH:mm:ss")> Hashes/PGP Signature unverifiable! Follow: https://www.getmonero.org/resources/user-guides/verification-windows-beginner.html"
         }
     }
 } Else {
-        Write-Output "Daemon not running."
+        Add-Content $fPath\update.log "$(Get-Date -Format "dd/MM/yyyy HH:mm:ss")> Daemon not running."
         If (Test-Path "$subfolder\monerod.exe"){
-            Write-Output "Starting monerod.exe..."
+            Add-Content $fPath\update.log "$(Get-Date -Format "dd/MM/yyyy HH:mm:ss")> Starting monerod.exe..."
             Start-Process $subfolder\monerod.exe -ArgumentList "$lmdb $prune"
         } Else {
-            Write-Output "Monerod not found. Downloading latest from the web..."
+            Add-Content $fPath\update.log "$(Get-Date -Format "dd/MM/yyyy HH:mm:ss")> Monerod not found. Downloading latest from the web..."
             $url = "https://downloads.getmonero.org/cli/win64"
             $progresspreference = 'silentlyContinue'
             Invoke-WebRequest $url -OutFile $fPath\Monero.zip
             $progressPreference = 'Continue'
             If (VerifyHash($fPath)){
-                Write-Output "Hash match confirmed. Extracting download..."
+                Add-Content $fPath\update.log "$(Get-Date -Format "dd/MM/yyyy HH:mm:ss")> Hash match confirmed. Extracting download..."
                 Expand-Archive -LiteralPath $fPath\Monero.zip -DestinationPath $fPath -Force
                 $varName = "monero-x86_64-w64-mingw32-v"+$fileName.Substring(16,$fileName.Length-20)
                 If (Test-Path $subfolder) {
@@ -66,10 +66,10 @@ If ($monerod){
                 } Else {
                     Rename-Item $fPath\$varName $subfolder
                 }
-                Write-Output "Starting monerod.exe..."
+                Add-Content $fPath\update.log "$(Get-Date -Format "dd/MM/yyyy HH:mm:ss")> Starting monerod.exe..."
                 Start-Process $subfolder\monerod.exe -ArgumentList "$lmdb $prune"
             } Else {
-                Write-Output "Hashes/PGP Signature unverifiable! Follow: https://www.getmonero.org/resources/user-guides/verification-windows-beginner.html"
+                Add-Content $fPath\update.log "$(Get-Date -Format "dd/MM/yyyy HH:mm:ss")> Hashes/PGP Signature unverifiable! Follow: https://www.getmonero.org/resources/user-guides/verification-windows-beginner.html"
             }
         }
 }
