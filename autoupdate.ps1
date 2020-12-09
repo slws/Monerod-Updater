@@ -12,27 +12,32 @@ prune can be set to "" if you do not require blockchain pruning
 subfolder is the extracted cli wallet
 tFolder is a temp folder used to expand the update archives
 #>
-
 $fPath = "<Your_filepath>"
 $lmdb = "--data-dir C:\ProgramData\bitmonero\"
 $log = "$fPath\Update.log"
 $prune = "--prune-blockchain"
 $sFolder = "$fPath\monero-cli"
 $tFolder = "$env:TEMP\Updates"
+
+Function VerifyHash {
+    $match = $false
+    Invoke-WebRequest "https://www.getmonero.org/downloads/hashes.txt" -OutFile $fPath\Hashes.txt
+    $pgpSig =  [string] (& gpg --textmode --verify $fPath\Hashes.txt 2>&1)
+    If ($pgpSig -like "*Good signature from `"binaryFate <binaryfate@getmonero.org>*"){
+        $certUtilOutput = (certUtil -hashfile $tFolder\monero.zip SHA256) -split '\s+'
+        If ((Get-Content $fPath\Hashes.txt | %{$_ -match $certUtilOutput[4]}) -contains $true) {
+            $match = $true
+        }
+    }
+    Return $match
+}
 $required = $false
 $url = "https://downloads.getmonero.org/cli/win64"
 $monerod = (Get-Process -Name monerod -EA SilentlyContinue).id
 If (!(Test-Path $tFolder)){
     New-Item -Path $tFolder -ItemType Directory | Out-Null
 }
-If ($monerod){
-    $update = [string] (& (Get-Process -Name monerod -FileVersionInfo).FileName update check)
-    If ($update -like "*No update available"){
-        Write-Output "No updates required."
-    } Else {
-        $required = $true
-    }
-} Else {
+If (!($monerod)){
     Add-Content $log "$(Get-Date -Format "dd/MM/yyyy HH:mm:ss")> Daemon not running."
     If (Test-Path "$sFolder\monerod.exe"){
         Add-Content $log "$(Get-Date -Format "dd/MM/yyyy HH:mm:ss")> Starting monerod.exe..."
@@ -40,6 +45,12 @@ If ($monerod){
     } Else {
         $required = $true
     }
+}
+$update = [string] (& (Get-Process -Name monerod -EA SilentlyContinue -FileVersionInfo).FileName update check)
+If ($update -like "*No update available"){
+    Write-Output "No updates required."
+} Else {
+    $required = $true
 }
 If ($required){
         Add-Content $log "$(Get-Date -Format "dd/MM/yyyy HH:mm:ss")> Update required. Downloading from the web..."
@@ -60,11 +71,13 @@ If ($required){
             Expand-Archive -LiteralPath $tFolder\Monero.zip -DestinationPath $tFolder -Force
             $mFolder = (Get-Childitem $tFolder | ? {$_.Attributes -eq "Directory"} | Where-Object {($_.name -like "monero-x86_64-w64-mingw32-v*")})
             If (Test-Path $sFolder) {
+                write-host "$sFolder exists"
+                write-host "Attempting to move-item $tFolder\$mFolder\* to $sFolder\"
                 Move-Item $tFolder\$mFolder\* $sFolder\ -Force
                 Remove-Item $tFolder\$mFolder -Recurse
                 Remove-Item $tFolder\Monero.zip
             } Else {
-                Move-Item $tFolder\$mFolder $fPath -Recurse
+                Move-Item $tFolder\$mFolder $fPath\ -Force
                 Rename-Item $fPath\$mFolder $sFolder
             }
             Add-Content $log "$(Get-Date -Format "dd/MM/yyyy HH:mm:ss")> Restarting monerod.exe..."
@@ -72,16 +85,4 @@ If ($required){
         } Else {
             Add-Content $log "$(Get-Date -Format "dd/MM/yyyy HH:mm:ss")> Hashes/PGP Signature unverifiable! Follow: https://www.getmonero.org/resources/user-guides/verification-windows-beginner.html"
         }
-}
-Function VerifyHash {
-    $match = $false
-    Invoke-WebRequest "https://www.getmonero.org/downloads/hashes.txt" -OutFile $fPath\Hashes.txt
-    $pgpSig =  [string] (& gpg --textmode --verify $fPath\Hashes.txt 2>&1)
-    If ($pgpSig -like "*Good signature from `"binaryFate <binaryfate@getmonero.org>*"){
-        $certUtilOutput = (certUtil -hashfile $tFolder\monero.zip SHA256) -split '\s+'
-        If ((Get-Content $fPath\Hashes.txt | %{$_ -match $certUtilOutput[4]}) -contains $true) {
-            $match = $true
-        }
-    }
-    Return $match
 }
