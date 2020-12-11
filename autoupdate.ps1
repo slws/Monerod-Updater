@@ -46,6 +46,7 @@ If (!($monerod)){
         $required = $true
     }
 }
+Start-Sleep -Seconds 30
 $update = [string] (& (Get-Process -Name monerod -EA SilentlyContinue -FileVersionInfo).FileName update check)
 If ($update -like "*No update available"){
     Write-Output "No updates required."
