@@ -42,12 +42,14 @@ If (!($monerod)){
     If (Test-Path "$sFolder\monerod.exe"){
         Add-Content $log "$(Get-Date -Format "dd/MM/yyyy HH:mm:ss")> Starting monerod.exe..."
         Start-Process $sFolder\monerod.exe -ArgumentList "$lmdb $prune"
+        Start-Sleep -Seconds 30
+        $update = [string] (& $sFolder\monerod.exe update check)
     } Else {
         $required = $true
     }
+} Else {
+    $update = [string] (& $sFolder\monerod.exe update check)
 }
-Start-Sleep -Seconds 30
-$update = [string] (& (Get-Process -Name monerod -EA SilentlyContinue -FileVersionInfo).FileName update check)
 If ($update -like "*No update available"){
     Write-Output "No updates required."
 } Else {
